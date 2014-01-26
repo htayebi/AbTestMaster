@@ -51,3 +51,43 @@ Things to watch out for:
 - While there is nothing stopping you from having the same split groups in multiple controllers or even areas, that is not recommended as it makes it difficult for you to track which action methods are bundled in the same test.
 - Once any of the split view action methods are called, a record is added to the CSV file (mentioned above). That is only when the result of calling the action is successful and HTTP response code is between 200 to 207. This means, if there is an Authorize attribute on the action and it fails, or action method returns a RedirectToAction result, it will not be logged.
 
+
+More Features
+-------------
+AbTestMaster also enables you to define goals. This will help identify which views were displayed to the user before they were converted. Here's an example:
+
+        public class PurchaseController : AbTestMasterController
+        {
+          [SplitView("Version 1", "ShoppingCart", "Checkout")]
+          public ActionResult Cart()
+          {
+            return View();
+          }
+          
+          [SplitView("Version 2", "ShoppingCart", "Checkout")]
+          public ActionResult Cart2()
+          {
+            return View();
+          }
+          
+          [SplitView("Version 1", "PaymentPage", "Checkout")]
+          public ActionResult Payment()
+          {
+            return View();
+          }
+          
+          [SplitView("Version 2", "PaymentPage", "Checkout")]
+          public ActionResult Payment()
+          {
+            return View();
+          }
+          
+          [SplitGoal("Checkout")]
+          [HttpPost]
+          public ActionResult Confirm()
+          {
+            return View();
+          }
+        }
+        
+In the sample code above, there are two views before Confirm page (our goal, where we consider customer as "converted"), Cart and Payment, each with two variations. You will notice that SplitView attribute is now called with another consutructor. The first two parameters are the view name and the split group as before. The third parameter is called sequence. In the example above, all SplitViews have the same sequence. When Confirm action method is called, ABTestMaster will look for all the SplitViews already called in the same sequence ("checkout" in the example above) and saves them in the AB_TEST_MASTER_SplitGOlas.csv.
