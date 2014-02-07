@@ -118,7 +118,13 @@ namespace AbTestMaster.MvcExtensions
 
         private SplitView ChooseSplit(List<SplitView> eligibleSplitCases, string splitGroup)
         {
-            return HttpHelpers.ReadFromCookie(splitGroup) ?? PickSplitRandomly(eligibleSplitCases);
+            SplitView cookieSplit = HttpHelpers.ReadFromCookie(splitGroup);
+
+            //make sure splitview in cookie is still in use
+            bool cookieValid = eligibleSplitCases.Any(
+                s => s.SplitViewName == cookieSplit.SplitViewName && s.SplitGroup == cookieSplit.SplitGroup);
+
+            return cookieValid ? cookieSplit : PickSplitRandomly(eligibleSplitCases);
         }
 
         private SplitView PickSplitRandomly(List<SplitView> splits)
