@@ -121,7 +121,7 @@ namespace AbTestMaster.MvcExtensions
             SplitView cookieSplit = HttpHelpers.ReadFromCookie(splitGroup);
 
             //make sure splitview in cookie is still in use
-            bool cookieValid = eligibleSplitCases.Any(
+            bool cookieValid = ( cookieSplit != null ) && eligibleSplitCases.Any(
                 s => s.SplitViewName == cookieSplit.SplitViewName && s.SplitGroup == cookieSplit.SplitGroup);
 
             return cookieValid ? cookieSplit : PickSplitRandomly(eligibleSplitCases);
