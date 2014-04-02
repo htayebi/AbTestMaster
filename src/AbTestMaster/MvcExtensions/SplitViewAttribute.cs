@@ -10,9 +10,19 @@ namespace AbTestMaster.MvcExtensions
             SplitView = new SplitView { SplitGroup = splitGroup, SplitViewName = splitName };
         }
 
-        public SplitViewAttribute(string splitName, string splitGroup, string sequence)
+        public SplitViewAttribute(string splitName, string splitGroup, double ratio)
         {
-            SplitView = new SplitView { SplitGroup = splitGroup, SplitViewName = splitName, Sequence = sequence };
+            SplitView = new SplitView { SplitGroup = splitGroup, SplitViewName = splitName, Ratio = ratio };
+        }
+
+        public SplitViewAttribute(string splitName, string splitGroup, string goal)
+        {
+            SplitView = new SplitView { SplitGroup = splitGroup, SplitViewName = splitName, Goal = goal };
+        }
+
+        public SplitViewAttribute(string splitName, string splitGroup, string goal, double ratio)
+        {
+            SplitView = new SplitView { SplitGroup = splitGroup, SplitViewName = splitName, Goal = goal, Ratio = ratio };
         }
 
         internal SplitView SplitView { get; set; }

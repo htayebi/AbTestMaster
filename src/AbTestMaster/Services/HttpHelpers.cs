@@ -42,7 +42,7 @@ namespace AbTestMaster.Services
                 return viewTrail;
             }
 
-            IEnumerable<SplitView> currentSequence = SessionSplitViews.Where(v => v.Sequence == sequence).Take(5);
+            IEnumerable<SplitView> currentSequence = SessionSplitViews.Where(v => v.Goal == sequence).Take(5);
 
             viewTrail = currentSequence.Select(FormatSplitViewData).Aggregate(string.Empty, (current, fc) => current + "->" + fc);
 
@@ -54,7 +54,7 @@ namespace AbTestMaster.Services
             var myCookie = new HttpCookie(Constants.AB_TEST_MASTER_COOKIE + "_" + split.SplitGroup);
             myCookie[Constants.SPLIT_GROUP] = split.SplitGroup;
             myCookie[Constants.SPLIT_NAME] = split.SplitViewName;
-            myCookie[Constants.SPLIT_SEQUENCE] = split.Sequence;
+            myCookie[Constants.SPLIT_GOAL] = split.Goal;
             myCookie[Constants.ACTION] = split.Action;
             myCookie[Constants.CONTROLLER] = split.Controller;
             myCookie[Constants.AREA] = split.Area;
@@ -74,7 +74,7 @@ namespace AbTestMaster.Services
                 {
                     SplitGroup = cookie[Constants.SPLIT_GROUP],
                     SplitViewName = cookie[Constants.SPLIT_NAME],
-                    Sequence = cookie[Constants.SPLIT_SEQUENCE],
+                    Goal = cookie[Constants.SPLIT_GOAL] ?? cookie[Constants.SPLIT_SEQUENCE],
                     Action = cookie[Constants.ACTION],
                     Controller = cookie[Constants.CONTROLLER],
                     Area = cookie[Constants.AREA]
@@ -93,7 +93,7 @@ namespace AbTestMaster.Services
         {
             var viewList = SessionSplitViews;
 
-            var newList = viewList.Where(splitView => splitView.Sequence != splitGoal.Sequence).ToList();
+            var newList = viewList.Where(splitView => splitView.Goal != splitGoal.Goal).ToList();
 
             SessionSplitViews = newList;
         }
@@ -110,7 +110,7 @@ namespace AbTestMaster.Services
                 return output;
             }
 
-            output = "(" + splitView.SplitViewName + "#" + splitView.SplitGroup + "#" + splitView.Sequence + ")";
+            output = "(" + splitView.SplitViewName + "#" + splitView.SplitGroup + "#" + splitView.Goal + ")";
 
             return output;
         }

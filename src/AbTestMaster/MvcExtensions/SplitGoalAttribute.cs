@@ -5,9 +5,9 @@ namespace AbTestMaster.MvcExtensions
 {
     public class SplitGoalAttribute : ActionFilterAttribute
     {
-        public SplitGoalAttribute(string sequence)
+        public SplitGoalAttribute(string goalName)
         {
-            SplitGoal = new SplitGoal { Sequence = sequence };
+            SplitGoal = new SplitGoal { Goal = goalName };
         }
 
         internal SplitGoal SplitGoal { get; set; }

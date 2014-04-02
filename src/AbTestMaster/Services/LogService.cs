@@ -13,12 +13,13 @@ namespace AbTestMaster.Services
         {
             var keyValuePairs = new Dictionary<string, string>
             {
+                {Constants.DATE_TIME, DateTime.UtcNow.ToString()},
                 {Constants.SPLIT_GROUP, split.SplitGroup},
                 {Constants.SPLIT_NAME, split.SplitViewName},
-                {Constants.SPLIT_SEQUENCE, split.Sequence}
+                {Constants.SPLIT_GOAL, split.Goal}
             };
 
-            CheckForFile(Constants.SPLIT_VIEWS_FILE_PATH, new List<string> { Constants.DATE_TIME, Constants.SPLIT_GROUP, Constants.SPLIT_NAME, Constants.SPLIT_SEQUENCE });
+            CheckForFile(Constants.SPLIT_VIEWS_FILE_PATH, new List<string> { Constants.DATE_TIME, Constants.SPLIT_GROUP, Constants.SPLIT_NAME, Constants.SPLIT_GOAL });
 
             WriteToFile(keyValuePairs, Constants.SPLIT_VIEWS_FILE_PATH);
         }
@@ -27,32 +28,27 @@ namespace AbTestMaster.Services
         {
             var keyValuePairs = new Dictionary<string, string>
             {
-                {Constants.SPLIT_SEQUENCE, goal.Sequence},
-                {Constants.SPLIT_VIEWS_SEQUENCE_TRAIL, HttpHelpers.GetViewTrail(goal.Sequence)}
+                {Constants.DATE_TIME, DateTime.UtcNow.ToString()},
+                {Constants.SPLIT_GOAL, goal.Goal},
+                {Constants.SPLIT_VIEWS_SEQUENCE_TRAIL, HttpHelpers.GetViewTrail(goal.Goal)}
             };
 
-            CheckForFile(Constants.SPLIT_GOALS_FILE_PATH, new List<string> { Constants.DATE_TIME, Constants.SPLIT_SEQUENCE, Constants.SPLIT_VIEWS_SEQUENCE_TRAIL });
+            CheckForFile(Constants.SPLIT_GOALS_FILE_PATH, new List<string> { Constants.DATE_TIME, Constants.SPLIT_GOAL, Constants.SPLIT_VIEWS_SEQUENCE_TRAIL });
 
             WriteToFile(keyValuePairs, Constants.SPLIT_GOALS_FILE_PATH);
         }
 
         internal void WriteToFile(Dictionary<string, string> keyValuePairs, string path)
         {
-            try
+            var logFilePath = @HttpContext.Current.Server.MapPath("~") + path;
+            var logFile = new StreamWriter(logFilePath, true);
+            foreach (var keyValuePair in keyValuePairs)
             {
-                var logFilePath = @HttpContext.Current.Server.MapPath("~") + path;
-                var logFile = new StreamWriter(logFilePath, true);
-                logFile.Write(DateTime.Now.ToLocalTime());
-                foreach (var keyValuePair in keyValuePairs)
-                {
-                    logFile.Write("," + keyValuePair.Value);
-                }
-
-                logFile.WriteLine();
-                logFile.Close();
+                logFile.Write(keyValuePair.Value + ",");
             }
-            catch (Exception)
-            { }
+
+            logFile.WriteLine();
+            logFile.Close();
         }
         #endregion
 

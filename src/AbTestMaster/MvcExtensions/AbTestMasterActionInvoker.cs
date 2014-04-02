@@ -40,15 +40,13 @@ namespace AbTestMaster.MvcExtensions
 
             if (selectedSplit != null)
             {
-                var logservice = new LogService();
-                logservice.WriteToFile(selectedSplit);
+                TargetService.WriteToTargets(selectedSplit);
                 HttpHelpers.SaveToCookie(selectedSplit);
                 HttpHelpers.SaveToSession(selectedSplit);
             }
             else if (splitGoal != null)
             {
-                var logservice = new LogService();
-                logservice.WriteToFile(splitGoal);
+                TargetService.WriteToTargets(splitGoal);
                 HttpHelpers.RemoveFromSession(splitGoal);
             }
 
@@ -76,7 +74,6 @@ namespace AbTestMaster.MvcExtensions
                     controllerContext.RouteData.Values.Add(Constants.AREA, selectedSplit.Area);
                 }
             }
-
         }
 
         private SplitGoal HandleGoalCall(ControllerContext controllerContext, string actionName)
@@ -121,22 +118,76 @@ namespace AbTestMaster.MvcExtensions
             SplitView cookieSplit = HttpHelpers.ReadFromCookie(splitGroup);
 
             //make sure splitview in cookie is still in use
-            bool cookieValid = ( cookieSplit != null ) && eligibleSplitCases.Any(
-                s => s.SplitViewName == cookieSplit.SplitViewName && s.SplitGroup == cookieSplit.SplitGroup);
+            bool cookieValid =
+                (cookieSplit != null)
+                && eligibleSplitCases.Any(
+                    s =>
+                        s.SplitViewName == cookieSplit.SplitViewName
+                        && s.SplitGroup == cookieSplit.SplitGroup
+                        && s.Goal == cookieSplit.Goal
+                        && (!s.Ratio.HasValue || s.Ratio > 0));
 
             return cookieValid ? cookieSplit : PickSplitRandomly(eligibleSplitCases);
         }
 
         private SplitView PickSplitRandomly(List<SplitView> splits)
         {
-            var randomIndex = PickRandom(0, splits.Count);
-            return splits.ElementAt(randomIndex);
+            var nonZeroSplits = splits.Where(s => !s.Ratio.HasValue || s.Ratio.Value > 0).ToList();
+            double sum = splits.Where(s => s.Ratio.HasValue).Sum(s => s.Ratio.Value);
+
+            //if sum of ratios assigned is greater than one, ignore them and split the ratio evenly
+            if (sum > 1)
+            {
+                var count = (double)nonZeroSplits.Count;
+                foreach (var splitView in nonZeroSplits)
+                {
+                    splitView.Ratio = 1/count;
+                }
+            }
+
+            //if sum of ratios assigned is smaller than one, some redistribution needs to be done
+            if (sum < 1)
+            {
+                var splitsWithNoRatio = nonZeroSplits.Where(s => !s.Ratio.HasValue).ToList();
+                var count = (double)splitsWithNoRatio.Count;
+
+                double ratioLeft = 1 - sum;
+
+                // if there are splitvies with unassigned ratios, distribute the remaining percentage to them
+                if (count > 0)
+                {
+                    foreach (var splitView in nonZeroSplits.Where(n => !n.Ratio.HasValue))
+                    {
+                        splitView.Ratio = ratioLeft / count;
+                    }
+                }
+                // else, time the current splitview ratios propotionally
+                else
+                {
+                    foreach (var splitView in nonZeroSplits)
+                    {
+                        splitView.Ratio = splitView.Ratio / sum;
+                    }
+                }
+            }
+
+            double randomNumber = PickRandom();
+            int elementIndex = -1;
+            double accumulativeRatio = 0;
+
+            do
+            {
+                elementIndex++;
+                accumulativeRatio += nonZeroSplits.ElementAt(elementIndex).Ratio.Value;
+            } while (accumulativeRatio < randomNumber);
+
+            return nonZeroSplits.ElementAt(elementIndex);
         }
 
-        private static int PickRandom(int min, int max)
+        private static double PickRandom()
         {
             var rnd = new Random();
-            return rnd.Next(min, max);
+            return rnd.NextDouble();
         }
         #endregion
     }
