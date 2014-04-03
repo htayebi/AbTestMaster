@@ -1,0 +1,1 @@
+To run this demo successfully, in web.config replace the following server name in connection string (set to by default [YOUR LOCAL INSTANCED SQL SERVER NAME]) to your local sql server name.

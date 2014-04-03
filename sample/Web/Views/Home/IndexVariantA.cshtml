@@ -1,0 +1,33 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<div class="jumbotron">
+    <h1>A Healthier Life</h1>
+    <p class="lead">Well let's face it, no one eats all the right veges and does exercise all the time. We will help to complement any possible deficiencies.</p>
+    <p>
+        <a href='@Url.Action("Payment", "Home")' class="btn btn-primary btn-lg">Next &raquo;</a>
+    </p>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <h2>Variants</h2>
+        <p>
+            This view has an alternative variant called Variant B. In A/B Test Master, we call these variants "Split"s.
+        </p>
+        <p>
+            <a class="btn btn-default" href="#">Learn more &raquo;</a>
+        </p>
+    </div>
+    <div class="col-md-4">
+        <h2>Variant Groups</h2>
+        <p>In order to tell A/B Test Master two views are variants of each other and should be displayed alternatively to the user, you will need to give the variants the same SplitGroup name.</p>
+        <p><a class="btn btn-default" href="#">Learn more &raquo;</a></p>
+    </div>
+    <div class="col-md-4">
+        <h2>Unlimited variations</h2>
+        <p>You can have an as many number of variations as you want, no limits! You can also give each split a ratio which determines how often it will be displayed to compared to other variations in that SplitGroup.</p>
+        <p><a class="btn btn-default" href="#">Learn more &raquo;</a></p>
+    </div>
+</div>

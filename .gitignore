@@ -25,6 +25,7 @@ publish/
 
 # NuGet Packages
 packages/*
+sample/packages/*
 
 # Windows Azure Build Output
 csx/
