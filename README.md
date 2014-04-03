@@ -51,8 +51,29 @@ Things to watch out for:
 - While there is nothing stopping you from having the same split groups in multiple controllers or even areas, that is not recommended as it makes it difficult for you to track which action methods are bundled in the same test.
 - Once any of the split view action methods are called, a record is added to the CSV file (mentioned above). That is only when the result of calling the action is successful and HTTP response code is between 200 to 207. This means, if there is an Authorize attribute on the action and it fails, or action method returns a RedirectToAction result, it will not be logged.
 
+Ratio
+-------------
 
-More Features
+In the example above, each view (Version 1 and Version 2) is loaded approximately 50% of the time. It is possible to override this default value:
+
+        public class HomeController : AbTestMasterController
+        {
+          [SplitView("Version 1", "HomeTest", .3)]
+          public ActionResult Index()
+          {
+            return View();
+          }
+          
+          [SplitView("Version 2", "HomeTest", .7)]
+          public ActionResult Index2()
+          {
+            return View();          
+          }
+        }
+
+Now Version 1 is shown to 30% of visitors and Version 2 loads 70% the time. Please note that you could specify the ratio only for one of the views in the split group and A/B Test Master would automatically assign the remaining 70% to the rest of views in the split group.
+		
+Goals
 -------------
 AbTestMaster also enables you to define goals. This will help identify which views were displayed to the user before they were converted. Here's an example:
 
@@ -91,3 +112,35 @@ AbTestMaster also enables you to define goals. This will help identify which vie
         }
         
 In the sample code above, there are two views before Confirm page (our goal, where we consider customer as "converted"), Cart and Payment, each with two variations. You will notice that SplitView attribute is now called with another consutructor. The first two parameters are the view name and the split group as before. The third parameter is called sequence. In the example above, all SplitViews have the same sequence. When Confirm action method is called, ABTestMaster will look for all the SplitViews already called in the same sequence ("checkout" in the example above) and saves them in the AB_TEST_MASTER_SplitGolas.csv.
+
+Targets
+-------------
+By default, the view and goal data is saved in csv files. If you are using the <a href="https://www.nuget.org/packages/AbTestMaster/">Nuget Package</a>, you will note that after installation, it adds an ABTestMaster config section to web.config. In there, there are two targets to which the results are written.
+
+You can choose the view and goal data to be saved in csv or sql server database targets.
+
+When defining a target, you will need to specify:
+ - type: "file" or "database"
+ - data: "views" or "goals"
+ - List of parameters. Acceptable parameters are different depending whether the "data" is set to "views" or "goals". Here's are two examples:
+
+   <target name="fileviews" type="file" data="views" path="\App_Data\AB_TEST_MASTER_SplitViews.csv">
+        <parameter name="@name" value="$splitname" />
+        <parameter name="@group" value="$splitgroup" />
+        <parameter name="@goal" value="$splitgoal" />
+        <parameter name="@browser" value="$browser" />
+        <parameter name="@agent" value="$useragent" />
+        <parameter name="@ip" value="$ipaddress" />
+        <parameter name="@datetime" value="$currentdatetimeutc" />
+	</target>
+ 
+      <target name="dbgoals" type="database" data="goals" connectionStringName="yourConnectionStringName" commandText="INSERT INTO AbGoalData (SplitGoal, SequenceTrail, Browser, UserAgent, IpAddress, CurrentDateTime) values(@goal, @sequence, @browser, @agent, @ip, @datetime) ">
+        <parameter name="@goal" value="$splitgoal" />
+        <parameter name="@sequence" value="$splitsequencetrail" />
+        <parameter name="@browser" value="$browser" />
+        <parameter name="@agent" value="$useragent" />
+        <parameter name="@ip" value="$ipaddress" />
+        <parameter name="@datetime" value="$currentdatetimeutc" />
+      </target>
+	  
+For a complete set of examples, download the the sample code.
