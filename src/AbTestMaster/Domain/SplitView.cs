@@ -9,5 +9,6 @@
         public string Controller { get; set; }
         public string Area { get; set; }
         public double? Ratio { get; set; }
+        public string Namespace { get; set; }
     }
 }

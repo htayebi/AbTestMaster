@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web.Mvc;
 using AbTestMaster.Domain;
 using AbTestMaster.Services;
+using System.Web.Routing;
 
 namespace AbTestMaster.MvcExtensions
 {
@@ -27,6 +28,10 @@ namespace AbTestMaster.MvcExtensions
                 controllerContext.RouteData.Values[Constants.CONTROLLER] = selectedSplit.Controller;
 
                 AddRemoveArea(controllerContext, selectedSplit);
+
+                AddRemoveNamespace(controllerContext, splitView, selectedSplit);
+
+                ReinstantiateController(controllerContext, splitView, selectedSplit);
 
                 actionName = selectedSplit.Action;
             }
@@ -62,6 +67,12 @@ namespace AbTestMaster.MvcExtensions
                 {
                     controllerContext.RouteData.Values.Remove(Constants.AREA);
                 }
+
+                var index = GetAreaIndex(controllerContext.RouteData.DataTokens);
+                if (index != -1)
+                {
+                    controllerContext.RouteData.DataTokens.Remove(Constants.AREA);
+                }
             }
             else
             {
@@ -73,6 +84,69 @@ namespace AbTestMaster.MvcExtensions
                 {
                     controllerContext.RouteData.Values.Add(Constants.AREA, selectedSplit.Area);
                 }
+
+                var index = GetAreaIndex(controllerContext.RouteData.DataTokens);
+                if (index != -1)
+                {
+                    controllerContext.RouteData.DataTokens.Remove(Constants.AREA);
+                    controllerContext.RouteData.DataTokens.Add(Constants.AREA, selectedSplit.Area);
+                }
+                else
+                {
+                    controllerContext.RouteData.DataTokens.Add(Constants.AREA, selectedSplit.Area);
+                }
+            }
+        }
+
+        private void ReinstantiateController(ControllerContext controllerContext, SplitView splitView, SplitView selectedSplit)
+        {
+            var factory = ControllerBuilder.Current.GetControllerFactory();
+
+            if (splitView.Controller != selectedSplit.Controller
+                || splitView.Namespace != selectedSplit.Namespace)
+            {
+                controllerContext.Controller = (ControllerBase)factory.CreateController(controllerContext.RequestContext,
+                    selectedSplit.Controller);
+            }
+        }
+
+        private void AddRemoveNamespace(ControllerContext controllerContext, SplitView currentSplit, SplitView selectedSplit)
+        {
+            if (currentSplit.Namespace == selectedSplit.Namespace)
+            {
+                return;
+            }
+
+            if (controllerContext.RouteData.DataTokens.ContainsKey(Constants.NAMESPACES))
+            {
+                bool replaced = false;
+                var namespacesPair = controllerContext.RouteData.DataTokens.Single(data => data.Key == Constants.NAMESPACES);
+                var namespaces = namespacesPair.Value as string[];
+
+                if (namespaces != null)
+                {
+                    for (int i = 0; i < namespaces.Length; i++)
+                    {
+                        if (namespaces[i] == currentSplit.Namespace + "*")
+                        {
+                            namespaces[i] = selectedSplit.Namespace + "*";
+                            replaced = true;
+                            break;
+                        }
+                    }
+
+
+                    if (!replaced)
+                    {
+                        var newNamespaces = new string[namespaces.Length + 1];
+                        for (int i = 0; i < namespaces.Length; i++)
+                        {
+                            newNamespaces[i] = namespaces[i];
+                        }
+                        namespaces[namespaces.Length - 1] = selectedSplit.Namespace + "*";
+                    }
+                }
+
             }
         }
 
@@ -110,24 +184,58 @@ namespace AbTestMaster.MvcExtensions
                 areaName = controllerContext.RouteData.Values[Constants.AREA].ToString();
             }
 
+            if (string.IsNullOrWhiteSpace(areaName)
+                && controllerContext.RouteData.DataTokens.ContainsKey(Constants.AREA))
+            {
+                var index = GetAreaIndex(controllerContext.RouteData.DataTokens);
+                areaName = controllerContext.RouteData.DataTokens.Values.ElementAt(index).ToString();
+            }
+
             return areaName;
+        }
+
+        private int GetAreaIndex(RouteValueDictionary dataTokens)
+        {
+            int index = -1;
+            var keys = dataTokens.Keys;
+            int count = 0;
+            Dictionary<string, object>.ValueCollection values = dataTokens.Values;
+            foreach (var key in keys)
+            {
+                if (key == Constants.AREA)
+                {
+                    index = count;
+                    break;
+                }
+
+                count++;
+            }
+
+            return index;
         }
 
         private SplitView ChooseSplit(List<SplitView> eligibleSplitCases, string splitGroup)
         {
             SplitView cookieSplit = HttpHelpers.ReadFromCookie(splitGroup);
 
+            SplitView storedsplit = null;
+
             //make sure splitview in cookie is still in use
-            bool cookieValid =
-                (cookieSplit != null)
-                && eligibleSplitCases.Any(
-                    s =>
+            if(cookieSplit != null)
+            {
+                storedsplit = 
+                    eligibleSplitCases.FirstOrDefault(
+                        s =>
                         s.SplitViewName == cookieSplit.SplitViewName
                         && s.SplitGroup == cookieSplit.SplitGroup
-                        && s.Goal == cookieSplit.Goal
-                        && (!s.Ratio.HasValue || s.Ratio > 0));
+                        && (s.Goal ?? "") == (cookieSplit.Goal ?? "")
+                        && (s.Area ?? "") == (cookieSplit.Area ?? "")
+                        && (!s.Ratio.HasValue || s.Ratio > 0)
+                        && (s.Namespace ?? "") == (cookieSplit.Namespace ?? ""));
+            }
 
-            return cookieValid ? cookieSplit : PickSplitRandomly(eligibleSplitCases);
+
+            return storedsplit == default(SplitView) ? PickSplitRandomly(eligibleSplitCases) : storedsplit;
         }
 
         private SplitView PickSplitRandomly(List<SplitView> splits)

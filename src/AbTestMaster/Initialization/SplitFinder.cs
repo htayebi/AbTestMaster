@@ -24,6 +24,7 @@ namespace AbTestMaster.Initialization
                 var currentControllerDescriptor = new ReflectedControllerDescriptor(controllerType);
                 var actions = currentControllerDescriptor.GetCanonicalActions();
                 string area = GetAreaName(currentControllerDescriptor.ControllerType.FullName);
+                string controllerNamespace = GetNamespace(currentControllerDescriptor.ControllerType.FullName);
 
                 foreach (ActionDescriptor action in actions)
                 {
@@ -41,7 +42,8 @@ namespace AbTestMaster.Initialization
                                 Action = action.ActionName,
                                 Controller = currentControllerDescriptor.ControllerName,
                                 Area = area,
-                                Ratio = splitViewAttribute.SplitView.Ratio
+                                Ratio = splitViewAttribute.SplitView.Ratio,
+                                Namespace = controllerNamespace
                             });
                         }
                     }
@@ -49,6 +51,38 @@ namespace AbTestMaster.Initialization
             }
 
             return groups;
+        }
+
+        private static string GetNamespace(string fullName)
+        {
+            string currentnamespace = string.Empty;
+
+            string[] namepieces = fullName.Split('.');
+            int? controllerIndex = null;
+
+            for (int i = 0; i < namepieces.Length; i++)
+            {
+                if (namepieces[i].ToLower() == "controllers")
+                {
+                    controllerIndex = i;
+                }
+            }
+
+            if (!controllerIndex.HasValue)
+            {
+                throw new Exception("Controller name was not found in the controller's full name");
+            }
+
+            var sb = new StringBuilder();
+            for (int i = 0; i < controllerIndex.Value; i++)
+            {
+                sb.Append(namepieces[i]);
+                sb.Append(".");
+            }
+
+            currentnamespace = sb.ToString();
+
+            return currentnamespace;
         }
 
         internal static List<SplitGoal> FindSplitGoals()
@@ -117,6 +151,11 @@ namespace AbTestMaster.Initialization
                 var sb = new StringBuilder();
                 for (int i = (areasIndex.Value + 1); i < controllerIndex.Value; i++)
                 {
+                    if (!string.IsNullOrWhiteSpace(sb.ToString()))
+                    {
+                        sb.Append(".");
+                    }
+
                     sb.Append(namepieces[i]);
                 }
                 area = sb.ToString();

@@ -8,6 +8,7 @@
         internal const string ACTION = "action";
         internal const string CONTROLLER = "controller";
         internal const string AREA = "area";
+        internal const string NAMESPACES = "Namespaces";
 
         internal const string SPLIT_GROUP = "SPLIT_GROUP";
         internal const string SPLIT_NAME = "SPLIT_NAME";

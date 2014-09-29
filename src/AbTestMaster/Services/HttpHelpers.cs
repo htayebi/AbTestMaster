@@ -58,6 +58,7 @@ namespace AbTestMaster.Services
             myCookie[Constants.ACTION] = split.Action;
             myCookie[Constants.CONTROLLER] = split.Controller;
             myCookie[Constants.AREA] = split.Area;
+            myCookie[Constants.NAMESPACES] = split.Namespace;
             myCookie.Expires = DateTime.Now.AddYears(1);
             HttpContext.Current.Response.Cookies.Add(myCookie);
         }
@@ -77,7 +78,8 @@ namespace AbTestMaster.Services
                     Goal = cookie[Constants.SPLIT_GOAL] ?? cookie[Constants.SPLIT_SEQUENCE],
                     Action = cookie[Constants.ACTION],
                     Controller = cookie[Constants.CONTROLLER],
-                    Area = cookie[Constants.AREA]
+                    Area = cookie[Constants.AREA],
+                    Namespace = cookie[Constants.NAMESPACES]
                 };
             }
 
