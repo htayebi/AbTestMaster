@@ -119,34 +119,9 @@ namespace AbTestMaster.MvcExtensions
 
             if (controllerContext.RouteData.DataTokens.ContainsKey(Constants.NAMESPACES))
             {
-                bool replaced = false;
-                var namespacesPair = controllerContext.RouteData.DataTokens.Single(data => data.Key == Constants.NAMESPACES);
-                var namespaces = namespacesPair.Value as string[];
-
-                if (namespaces != null)
-                {
-                    for (int i = 0; i < namespaces.Length; i++)
-                    {
-                        if (namespaces[i] == currentSplit.Namespace + "*")
-                        {
-                            namespaces[i] = selectedSplit.Namespace + "*";
-                            replaced = true;
-                            break;
-                        }
-                    }
-
-
-                    if (!replaced)
-                    {
-                        var newNamespaces = new string[namespaces.Length + 1];
-                        for (int i = 0; i < namespaces.Length; i++)
-                        {
-                            newNamespaces[i] = namespaces[i];
-                        }
-                        namespaces[namespaces.Length - 1] = selectedSplit.Namespace + "*";
-                    }
-                }
-
+                var namespaces = new string[1];
+                namespaces[0] = selectedSplit.Namespace;
+                controllerContext.RouteData.DataTokens[Constants.NAMESPACES] = namespaces;
             }
         }
 
