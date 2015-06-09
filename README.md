@@ -21,6 +21,6 @@ It has two dependencies which get installed with the Nuget package:
 
 How to Use
 ----------
-For full documentation, please look at [A/B Test Master] (http://www.abtestmaster.com/docs/) website.
+For full documentation, please look at [A/B Test Master] (http://diy.abtestmaster.com/docs/) website.
 
 You can also download the sample project from the source code.
